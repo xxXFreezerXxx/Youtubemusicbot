@@ -50,7 +50,7 @@ client.on("interactionCreate",async(interaction)=>{
                     adapterCreator:interaction.guild.voiceAdapterCreator,
                 });
                 const stream = ytdl(link.url, { filter : 'audioonly' });
-                const connection = getVoiceConnection(guildid);//1e
+                const connection = getVoiceConnection(interaction.guildId);//1e
                 const player = createAudioPlayer();
                 const file = createAudioResource(stream,{ seek: 0, volume: 1 });
                 VoiceConnection.subscribe(player);
