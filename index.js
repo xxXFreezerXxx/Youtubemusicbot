@@ -22,7 +22,7 @@ const client = new Client({
   ],
 });
 const fs = require('fs');
-const ytdl = require('ytdl-core');
+const play = require('play-dl');
 const secret = require("dotenv").config().parsed;
 const rest = new REST({ version: "10" }).setToken(secret.BOT_TOKEN);
 const ffmpegPath = require("@ffmpeg-installer/ffmpeg");
@@ -49,10 +49,11 @@ client.on("interactionCreate",async(interaction)=>{
                     guildId: interaction.guildId,
                     adapterCreator:interaction.guild.voiceAdapterCreator,
                 });
-                const stream = ytdl(link.url, { filter : 'audioonly' });
+                const stream = await play.stream(link.url);
                 const connection = getVoiceConnection(interaction.guildId);//1e
                 const player = createAudioPlayer();
-                const file = createAudioResource(stream,{ seek: 0, volume: 1 });
+                const file = createAudioResource(stream.stream, {inputType: stream.type});
+
                 VoiceConnection.subscribe(player);
                 player.play(file);
                 interaction.reply(`${link.title}を再生する`);
