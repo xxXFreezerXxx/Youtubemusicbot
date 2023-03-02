@@ -22,13 +22,16 @@ const client = new Client({
   ],
 });
 const fs = require('fs');
+let queue = [];
 const play = require('play-dl');
 const secret = require("dotenv").config().parsed;
 const rest = new REST({ version: "10" }).setToken(secret.BOT_TOKEN);
 const ffmpegPath = require("@ffmpeg-installer/ffmpeg");
 const ffmpeg = require("fluent-ffmpeg");
+let playnumber = 0;
 ffmpeg.setFfmpegPath(ffmpegPath.path);
 const ytsearch = require("yt-search");
+let playmode="normal";
 client.on("interactionCreate",async(interaction)=>{
     if(interaction.isChatInputCommand()){
         const cmd = interaction.commandName;
@@ -42,6 +45,7 @@ client.on("interactionCreate",async(interaction)=>{
           }
           const link = await videofinder(videotitle);
           if(link){
+            queue.push({title:link.title,channel:link.author,link:link.url,user:interaction.user.username});
             const voicechannel = interaction.member.voice.channelId;
             if(voicechannel){
                 const VoiceConnection = await joinVoiceChannel({
@@ -59,8 +63,17 @@ client.on("interactionCreate",async(interaction)=>{
                 interaction.reply(`${link.title}を再生する`);
                 player.addListener("stateChange", async (oldOne, newOne) => {
                   if(newOne.status=="idle"){
-                    await player.stop();
-                    await connection.destroy();
+                    if(playmode=="normal"){
+                      queue.splice(playnumber,1);
+                      if(queue.length==0){
+                        await player.stop();
+                        await connection.destroy();
+                      }else{
+                        player.play(file);
+                      }
+                    }else if(newOne.status=="repeatone"){
+                      player.play(file);
+                    }
                   }
                 })
             }
@@ -68,6 +81,18 @@ client.on("interactionCreate",async(interaction)=>{
           }else{
             interaction.reply("そんなものはない");
           }
+        }
+        if(cmd=="queue"){
+          const embed = new EmbedBuilder().setTitle("キュー").setDescription("**キュー数**: "+queue.length)
+          for(let i=0;i<queue.length;i++){
+            embed.addFields({name:`${i+1}. ${queue[i].title}`,value:`Creator: [${queue[i].channel.name}](${queue[i].channel.url}) | [Video link](${queue[i].link}) | Added by ${queue[i].user}`})
+          }
+          interaction.reply("kyu-");
+          interaction.channel.send({embeds:[embed]});
+        }
+        if(cmd=="playmode"){
+          playmode=interaction.options.get("mode").value;
+          interaction.reply(`${interaction.options.get("mode").value}にした`);
         }
     }
 })
@@ -81,6 +106,18 @@ const main = ()=>{
           .setDescription('リンク貼れボケナス')
           .setRequired(true)
           )).toJSON(),
+          (new SlashCommandBuilder().setName("queue").setDescription("キューを表示")).toJSON(),
+          (new SlashCommandBuilder().setName("playmode").setDescription("再生方法を選ぶ").addStringOption(option =>
+            option.setName('mode')
+              .setDescription('モード')
+              .setRequired(true)
+              .addChoices(
+                { name: '普通', value: 'normal' },
+                { name: '1曲リピート', value: 'repeatone' },
+                { name: '全曲リピート', value: 'repeatall' },
+                { name: "シャッフル",value:"shuffle"}
+              )))
+
   ];
   rest.put(Routes.applicationGuildCommands(secret.CLIENT_ID,secret.GUILD_ID),{body:commands}).then(()=>
   client.login(secret.BOT_TOKEN)
