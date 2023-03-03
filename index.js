@@ -47,7 +47,6 @@ client.on("interactionCreate",async(interaction)=>{
           const link = await videofinder(videotitle);
           if(link){
             queue.push({title:link.title,channel:link.author,link:link.url,user:interaction.user.username});
-            console.log(queue);
             const voicechannel = interaction.member.voice.channelId;
             if(voicechannel){
                 const VoiceConnection = await joinVoiceChannel({
@@ -73,6 +72,7 @@ client.on("interactionCreate",async(interaction)=>{
                     if(newOne.status=="idle"){
                       if(playmode=="normal"){
                         queue.splice(playnumber,1);
+
                       }
                       if(playmode=="repeatall"){
                         playnumber=(playnumber+1)%queue.length;
@@ -85,8 +85,7 @@ client.on("interactionCreate",async(interaction)=>{
                         await player.stop();
                         await connection.destroy();
                     }else{
-                      console.log(queue);
-                      stream = await play.stream(queue[playnumber].url);
+                      stream = await play.stream(queue[playnumber].link);
                       file = createAudioResource(stream.stream, {inputType: stream.type});
                       player.play(file);
                     }
