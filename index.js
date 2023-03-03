@@ -122,7 +122,7 @@ const main = ()=>{
       (new SlashCommandBuilder().setName("youtube").setDescription("再生")
       .addStringOption(option =>
         option.setName('link')
-          .setDescription('リンク貼れボケナス')
+          .setDescription('リンクかタイトルか')
           .setRequired(true)
           )).toJSON(),
           (new SlashCommandBuilder().setName("queue").setDescription("キューを表示")).toJSON(),
