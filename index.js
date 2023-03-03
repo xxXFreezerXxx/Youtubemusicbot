@@ -1,3 +1,4 @@
+//autopause
 const { Client, GatewayIntentBits,REST,EmbedBuilder,ButtonBuilder, ButtonStyle,Events,ActionRowBuilder,Routes,Partials} = require('discord.js');
 const { getVoiceConnection, joinVoiceChannel,createAudioPlayer, createAudioResource} =require("@discordjs/voice"); 
 const client = new Client({
@@ -71,8 +72,10 @@ client.on("interactionCreate",async(interaction)=>{
                   player.play(file);
                   isplaying=true;
                   player.addListener("stateChange", async (oldOne, newOne) => {
+                    if(newOne.status=="autopause"){
+                      player.configureNetworking();
+                    }
                     if(newOne.status=="idle"){
-                      console.log("a");
                       if(playmode=="normal"){
                         queue.splice(playnumber,1);
 
