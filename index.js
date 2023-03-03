@@ -29,6 +29,7 @@ const rest = new REST({ version: "10" }).setToken(secret.BOT_TOKEN);
 const ffmpegPath = require("@ffmpeg-installer/ffmpeg");
 const ffmpeg = require("fluent-ffmpeg");
 let playnumber = 0;
+let isplaying=false;
 ffmpeg.setFfmpegPath(ffmpegPath.path);
 const ytsearch = require("yt-search");
 let playmode="normal";
@@ -46,6 +47,7 @@ client.on("interactionCreate",async(interaction)=>{
           const link = await videofinder(videotitle);
           if(link){
             queue.push({title:link.title,channel:link.author,link:link.url,user:interaction.user.username});
+            console.log(queue);
             const voicechannel = interaction.member.voice.channelId;
             if(voicechannel){
                 const VoiceConnection = await joinVoiceChannel({
@@ -53,35 +55,52 @@ client.on("interactionCreate",async(interaction)=>{
                     guildId: interaction.guildId,
                     adapterCreator:interaction.guild.voiceAdapterCreator,
                 });
-                const stream = await play.stream(link.url);
-                const connection = getVoiceConnection(interaction.guildId);//1e
-                const player = createAudioPlayer();
-                const file = createAudioResource(stream.stream, {inputType: stream.type});
-
-                VoiceConnection.subscribe(player);
-                player.play(file);
-                interaction.reply(`${link.title}を再生する`);
-                player.addListener("stateChange", async (oldOne, newOne) => {
-                  if(newOne.status=="idle"){
-                    if(playmode=="normal"){
-                      queue.splice(playnumber,1);
+                let stream;
+                let connection;
+                let player;
+                let file;
+                if(!isplaying){
+                  stream = await play.stream(link.url);
+                  connection = getVoiceConnection(interaction.guildId);//1e
+                  player = createAudioPlayer();
+                  file = createAudioResource(stream.stream, {inputType: stream.type});
+  
+                  VoiceConnection.subscribe(player);
+                  player.play(file);
+                  isplaying=true;
+                  interaction.reply(`${link.title}を再生する`);
+                  player.addListener("stateChange", async (oldOne, newOne) => {
+                    if(newOne.status=="idle"){
+                      if(playmode=="normal"){
+                        queue.splice(playnumber,1);
+                      }
+                      if(playmode=="repeatall"){
+                        playnumber=(playnumber+1)%queue.length;
+                      }
+                      if(playmode=="shuffle"){
+                        playnumber=Math.floor(Math.random()*queue.length);
+                      }
                       if(queue.length==0){
+                        isplaying=false;
                         await player.stop();
                         await connection.destroy();
-                      }else{
-                        player.play(file);
-                      }
-                    }else if(newOne.status=="repeatone"){
+                    }else{
+                      console.log(queue);
+                      stream = await play.stream(queue[playnumber].url);
+                      file = createAudioResource(stream.stream, {inputType: stream.type});
                       player.play(file);
                     }
-                  }
-                })
-            }
+                    }
+                    })
+                  
+                }else{
+                  interaction.reply(`${link.title}をキューに入れた`);
+                }
 
           }else{
             interaction.reply("そんなものはない");
           }
-        }
+        }}
         if(cmd=="queue"){
           const embed = new EmbedBuilder().setTitle("キュー").setDescription("**キュー数**: "+queue.length)
           for(let i=0;i<queue.length;i++){
@@ -94,7 +113,7 @@ client.on("interactionCreate",async(interaction)=>{
           playmode=interaction.options.get("mode").value;
           interaction.reply(`${interaction.options.get("mode").value}にした`);
         }
-    }
+}
 })
 
 const {SlashCommandBuilder} = require("@discordjs/builders");
