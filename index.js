@@ -71,9 +71,9 @@ client.on("interactionCreate",async(interaction)=>{
                   VoiceConnection.subscribe(player);
                   player.play(file);
                   isplaying=true;
-                  player.addListener("stateChange", async (oldOne, newOne) => {
-                    if(newOne.status=="autopause"){
-                      player.configureNetworking();
+                  player.on("stateChange", async (oldOne, newOne) => {
+                    if(newOne.status=="autopaused"){
+                      connection.configureNetworking();
                     }
                     if(newOne.status=="idle"){
                       if(playmode=="normal"){
