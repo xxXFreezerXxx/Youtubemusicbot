@@ -33,6 +33,8 @@ let isplaying=false;
 ffmpeg.setFfmpegPath(ffmpegPath.path);
 const ytsearch = require("yt-search");
 let playmode="normal";
+setInterval(() => {
+}, 10000);
 client.on("interactionCreate",async(interaction)=>{
     if(interaction.isChatInputCommand()){
         const cmd = interaction.commandName;
@@ -59,7 +61,7 @@ client.on("interactionCreate",async(interaction)=>{
                 let player;
                 let file;
                 if(!isplaying){
-                  interaction.reply(`${link.title}を再生する`);
+                  interaction.editReply(`${link.title}を再生する`);
                   stream = await play.stream(link.url);
                   connection = getVoiceConnection(interaction.guildId);//1e
                   player = createAudioPlayer();
@@ -70,6 +72,7 @@ client.on("interactionCreate",async(interaction)=>{
                   isplaying=true;
                   player.addListener("stateChange", async (oldOne, newOne) => {
                     if(newOne.status=="idle"){
+                      console.log("a");
                       if(playmode=="normal"){
                         queue.splice(playnumber,1);
 
@@ -93,11 +96,11 @@ client.on("interactionCreate",async(interaction)=>{
                     })
                   
                 }else{
-                  interaction.reply(`${link.title}をキューに入れた`);
+                  interaction.editReply(`${link.title}をキューに入れた`);
                 }
 
           }else{
-            interaction.reply("そんなものはない");
+            interaction.editReply("そんなものはない");
           }
         }
             
