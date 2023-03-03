@@ -86,7 +86,6 @@ client.on("interactionCreate",async(interaction)=>{
                         await connection.destroy();
                     }else{
                       stream = await play.stream(queue[playnumber].link);
-                      interaction.channel.send(`${queue[playnumber].title}を再生する`)
                       file = createAudioResource(stream.stream, {inputType: stream.type});
                       player.play(file);
                     }
