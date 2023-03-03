@@ -111,7 +111,7 @@ client.on("interactionCreate",async(interaction)=>{
         }
         if(cmd=="playmode"){
           playmode=interaction.options.get("mode").value;
-          interaction.reply(`${interaction.options.get("mode").name}にした`);
+          interaction.reply(`${interaction.options.get("mode").value}にした`);
         }
 }
 })
