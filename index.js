@@ -37,7 +37,7 @@ client.on("interactionCreate",async(interaction)=>{
     if(interaction.isChatInputCommand()){
         const cmd = interaction.commandName;
         if(cmd==="youtube"){
-            
+          interaction.deferReply().then(async ()=>{
             const videotitle = interaction.options.get("link").value;
             const videofinder = async (query)=>{
               const videoResult = await ytsearch(query);
@@ -59,6 +59,7 @@ client.on("interactionCreate",async(interaction)=>{
                 let player;
                 let file;
                 if(!isplaying){
+                  interaction.reply(`${link.title}を再生する`);
                   stream = await play.stream(link.url);
                   connection = getVoiceConnection(interaction.guildId);//1e
                   player = createAudioPlayer();
@@ -67,7 +68,6 @@ client.on("interactionCreate",async(interaction)=>{
                   VoiceConnection.subscribe(player);
                   player.play(file);
                   isplaying=true;
-                  interaction.reply(`${link.title}を再生する`);
                   player.addListener("stateChange", async (oldOne, newOne) => {
                     if(newOne.status=="idle"){
                       if(playmode=="normal"){
@@ -99,7 +99,9 @@ client.on("interactionCreate",async(interaction)=>{
           }else{
             interaction.reply("そんなものはない");
           }
-        }}
+        }
+            
+          })}
         if(cmd=="queue"){
           const embed = new EmbedBuilder().setTitle("キュー").setDescription("**キュー数**: "+queue.length)
           for(let i=0;i<queue.length;i++){
